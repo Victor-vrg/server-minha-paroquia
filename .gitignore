@@ -1,0 +1,7 @@
+/src/config.ts
+/js/config.js
+/node_modules
+/src/minha-paroquia-db.sqlite3
+/src/basedeteste.sqlite3
+.env
+/public/img
