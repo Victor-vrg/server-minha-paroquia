@@ -12,7 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const paroquiaRoute_1 = __importDefault(require("./routes/paroquiaRoute"));
 const EventosRoute_1 = __importDefault(require("./routes/EventosRoute"));
@@ -23,9 +22,10 @@ const tokenRoute_1 = __importDefault(require("./routes/tokenRoute"));
 const ServicoComunitarioRoute_1 = __importDefault(require("./routes/ServicoComunitarioRoute"));
 const mongo_1 = require("./database/mongo");
 require('dotenv').config();
+const cors = require('cors');
 const app = (0, express_1.default)();
 const port = 3001;
-app.use((0, cors_1.default)());
+app.use(cors());
 app.use(express_1.default.json());
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
