@@ -1,5 +1,5 @@
-
 import express from 'express';
+import cors from 'cors';
 import paroquiasRoutes from './routes/paroquiaRoute';
 import eventosRoute from './routes/EventosRoute';
 import ExcursaoRoute from './routes/ExcursaoRoute';
