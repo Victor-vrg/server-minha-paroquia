@@ -32,7 +32,14 @@ export const obterParoquiaMaisFrequentada = async (req: Request, res: Response) 
 
 export const atualizarParoquia = async (req: Request, res: Response): Promise<void> => {
   try {
-    const id = new ObjectId(req.params.id); 
+    const idParam = req.params.id;
+
+    if (!ObjectId.isValid(idParam)) {
+      res.status(400).json({ error: 'ID inválido' });
+      return;
+    }
+
+    const id = new ObjectId(idParam); 
     const atualizacoes = req.body; 
 
     await paroquiaRepository.atualizarParoquia(id, atualizacoes);

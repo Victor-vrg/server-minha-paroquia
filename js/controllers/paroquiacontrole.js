@@ -42,7 +42,12 @@ const obterParoquiaMaisFrequentada = (req, res) => __awaiter(void 0, void 0, voi
 exports.obterParoquiaMaisFrequentada = obterParoquiaMaisFrequentada;
 const atualizarParoquia = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const id = new mongodb_1.ObjectId(req.params.id);
+        const idParam = req.params.id;
+        if (!mongodb_1.ObjectId.isValid(idParam)) {
+            res.status(400).json({ error: 'ID inválido' });
+            return;
+        }
+        const id = new mongodb_1.ObjectId(idParam);
         const atualizacoes = req.body;
         yield paroquiaRepository.atualizarParoquia(id, atualizacoes);
         res.json({ message: 'Paróquia atualizada com sucesso' });

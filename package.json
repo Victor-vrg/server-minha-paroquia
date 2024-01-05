@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node js/app.js",
     "watch": "npx tsc --watch",
+    "start": "node js/app.js",
     "build": "npx tsc --watch"
   },
   "keywords": [],

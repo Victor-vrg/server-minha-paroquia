@@ -10,7 +10,6 @@ import  ServicoComunitario  from './routes/ServicoComunitarioRoute';
 import { initializeDatabase } from './database/mongo'; 
 
 require('dotenv').config()
-const cors = require('cors');
 const app = express();
 const port = 3001;
 
