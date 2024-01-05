@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from 'express';
 import { Db, ObjectId } from 'mongodb';
 import { getDatabaseInstance } from './database/mongo'; 
 import UsuarioRepository from './Repository/UsuarioRepository';
-import UsuariosServicosComunitariosModel from './models/UsuariosServicosComunitariosModel';
 import ServicoComunitarioRepository from './Repository/servicoComunitarioRepository'
 
 
