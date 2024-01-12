@@ -17,6 +17,7 @@ export const verifyToken = async (req: Request & { user?: any }, res: Response, 
   if (!token) {
     return res.status(401).json({ error: 'Token não fornecido' });
   }
+ 
   try {
     const secretKey = process.env.secretKey as Secret;
     const decodedToken = jwt.verify(token, secretKey) as JwtPayload;

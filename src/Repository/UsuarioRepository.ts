@@ -36,13 +36,41 @@ class UsuarioRepository {
 
   public async createUser(user: UsuarioModel): Promise<any> {
     const dbInstance: Db = getDatabaseInstance();
-   await dbInstance.collection<UsuarioModel>(this.collectionName).insertOne(user);
-   
+    const result = await dbInstance.collection<UsuarioModel>(this.collectionName).insertOne(user);
+    return result.insertedId; 
   }
 
   public async updateProfile(UserId: ObjectId, updatedUser: UsuarioModel): Promise<void> {
     const dbInstance: Db = getDatabaseInstance();
     await dbInstance.collection(this.collectionName).updateOne({ _id: UserId }, { $set: updatedUser });
+  }
+
+  public async getServicoComunitarioById(ServicoComunitarioID: ObjectId | string) {
+    const dbInstance: Db = getDatabaseInstance();
+    const servicosComunitariosCollection = dbInstance.collection('ServicosComunitarios');
+
+    try {
+      const servicoComunitario = await servicosComunitariosCollection.findOne({
+        _id: new ObjectId(ServicoComunitarioID),
+      });
+
+      return servicoComunitario;
+    } catch (error) {
+      console.error('Erro ao buscar serviço comunitário por ID:', error);
+      throw error;
+    }
+  }
+
+  public async RelacaoUsuarioServicosComunitarios(novaRelacao: any): Promise<void> {
+    const dbInstance: Db = getDatabaseInstance();
+    const colecao = dbInstance.collection('UsuariosServicosComunitarios');
+    console.log(novaRelacao);
+    try {
+      await colecao.insertOne(novaRelacao);
+    } catch (error) {
+      console.error('Erro ao salvar relação na coleção "usuarioservicoscomunitarios":', error);
+      throw error;
+    }
   }
 
   public async insertOrUpdateToken(UserId: ObjectId, token: string, expiration: Date): Promise<void> {

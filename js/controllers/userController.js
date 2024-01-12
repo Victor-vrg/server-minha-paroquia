@@ -12,38 +12,54 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsuarioLogado = exports.editarPerfil = exports.getServicosComunitarios = exports.cadastrarUsuario = exports.login = exports.getUsers = void 0;
+exports.getUsers = exports.getServicosComunitarios = exports.getUsuarioLogado = exports.editarPerfil = exports.login = exports.cadastrarUsuario = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const UsuarioRepository_1 = __importDefault(require("../Repository/UsuarioRepository"));
 const servicoComunitarioRepository_1 = __importDefault(require("../Repository/servicoComunitarioRepository"));
 const usuarioRepository = new UsuarioRepository_1.default();
 const servicoComunitarioRepository = new servicoComunitarioRepository_1.default();
-const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const token = req.header('Authorization');
-    if (!token) {
-        return res.status(401).json({ error: 'Token não fornecido' });
-    }
+const cadastrarUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { NomeCompleto, Email, Telefone, Bairro, ParoquiaMaisFrequentada, DataNascimento, IDServicoComunitario, } = req.body;
     try {
-        const secretKey = process.env.secretKey;
-        const decodedToken = jsonwebtoken_1.default.verify(token, secretKey);
-        const UserId = decodedToken.UserId;
-        // const ParoquiaMaisFrequentada = 'Paróquia Teste'
-        const ParoquiaMaisFrequentada = decodedToken.ParoquiaMaisFrequentada;
-        const user = yield usuarioRepository.getUserById(UserId);
-        if (!user) {
-            return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
+        const SenhaHash = yield bcrypt_1.default.hash(req.body.senha, 10);
+        const novoUsuario = ({
+            NomeCompleto,
+            Email,
+            SenhaHash: SenhaHash,
+            Telefone,
+            Bairro,
+            ParoquiaMaisFrequentada,
+            DataNascimento,
+            IDServicoComunitario,
+        });
+        // Insere o novo usuário e obtém o _id retornado
+        const idNovoUsuario = yield usuarioRepository.createUser(novoUsuario);
+        if (!idNovoUsuario) {
+            return res.status(500).json({ error: 'Erro interno do servidor ao cadastrar usuário.' });
         }
-        const users = yield usuarioRepository.getUsersByParoquia(ParoquiaMaisFrequentada);
-        console.log("usuarios", users);
-        res.json(users);
+        if (IDServicoComunitario && IDServicoComunitario.length > 0) {
+            for (const ServicoComunitarioID of IDServicoComunitario) {
+                const servicoComunitario = yield usuarioRepository.getServicoComunitarioById(ServicoComunitarioID);
+                if (servicoComunitario) {
+                    const novaRelacao = {
+                        UsuarioID: idNovoUsuario.toString(),
+                        nomeServicoComunitario: servicoComunitario.nomeServicoComunitario,
+                        ServicoComunitarioID: ServicoComunitarioID,
+                        NivelAcessoNoServico: 5,
+                    };
+                    yield usuarioRepository.RelacaoUsuarioServicosComunitarios(novaRelacao);
+                }
+            }
+        }
+        res.json({ message: 'Usuário cadastrado com sucesso.', userId: novoUsuario });
     }
     catch (error) {
-        console.error('Erro ao buscar usuários:', error);
+        console.error('Erro ao cadastrar usuário:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
-exports.getUsers = getUsers;
+exports.cadastrarUsuario = cadastrarUsuario;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { NomeCompleto, Email, senha } = req.body;
     try {
@@ -80,45 +96,6 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.login = login;
-const cadastrarUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { NomeCompleto, Email, Telefone, Bairro, ParoquiaMaisFrequentada, DataNascimento, IDServicoComunitario, } = req.body;
-    try {
-        const SenhaHash = yield bcrypt_1.default.hash(req.body.senha, 10);
-        console.log("dados obrigatorios", NomeCompleto, Email, SenhaHash, IDServicoComunitario);
-        const novoUsuario = yield usuarioRepository.insertnewUser({
-            NomeCompleto,
-            Email,
-            SenhaHash: SenhaHash,
-            Telefone,
-            Bairro,
-            ParoquiaMaisFrequentada,
-            DataNascimento,
-            IDServicoComunitario,
-        });
-        if (novoUsuario) {
-            res.json({ message: 'Usuário cadastrado com sucesso.', userId: novoUsuario });
-        }
-        else {
-            res.status(500).json({ error: 'Erro interno do servidor ao cadastrar usuário.' });
-        }
-    }
-    catch (error) {
-        console.error('Erro ao cadastrar usuário:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-exports.cadastrarUsuario = cadastrarUsuario;
-const getServicosComunitarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const servicosComunitarios = yield servicoComunitarioRepository.getServicosComunitarios();
-        res.json(servicosComunitarios);
-    }
-    catch (error) {
-        console.error('Erro ao buscar serviços comunitários:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-exports.getServicosComunitarios = getServicosComunitarios;
 const editarPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.header('Authorization');
     if (!token) {
@@ -150,14 +127,29 @@ const editarPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         if (DataNascimento) {
             user.DataNascimento = DataNascimento;
         }
-        if (IDServicoComunitario) {
-            user.IDServicoComunitario = IDServicoComunitario;
-        }
         if (NovaSenha) {
             const senhaHash = yield bcrypt_1.default.hash(NovaSenha, 10);
             user.SenhaHash = senhaHash;
         }
+        if (IDServicoComunitario) {
+            user.IDServicoComunitario = IDServicoComunitario;
+        }
         yield usuarioRepository.updateProfile(decodedToken.UserId, user);
+        // Para cada IDServicoComunitario no array, criar uma nova relação
+        if (user.IDServicoComunitario && user.IDServicoComunitario.length > 0) {
+            for (const ServicoComunitarioID of user.IDServicoComunitario) {
+                const servicoComunitario = yield usuarioRepository.getServicoComunitarioById(ServicoComunitarioID);
+                if (servicoComunitario) {
+                    const novaRelacao = {
+                        UsuarioID: decodedToken.UserId,
+                        nomeServicoComunitario: servicoComunitario.nomeServicoComunitario,
+                        ServicoComunitarioID: ServicoComunitarioID,
+                        NivelAcessoNoServico: 5,
+                    };
+                    yield usuarioRepository.RelacaoUsuarioServicosComunitarios(novaRelacao);
+                }
+            }
+        }
         res.json({ message: 'Perfil atualizado com sucesso' });
     }
     catch (error) {
@@ -197,3 +189,39 @@ const getUsuarioLogado = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.getUsuarioLogado = getUsuarioLogado;
+const getServicosComunitarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const servicosComunitarios = yield servicoComunitarioRepository.getServicosComunitarios();
+        res.json(servicosComunitarios);
+    }
+    catch (error) {
+        console.error('Erro ao buscar serviços comunitários:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+exports.getServicosComunitarios = getServicosComunitarios;
+const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.header('Authorization');
+    if (!token) {
+        return res.status(401).json({ error: 'Token não fornecido' });
+    }
+    try {
+        const secretKey = process.env.secretKey;
+        const decodedToken = jsonwebtoken_1.default.verify(token, secretKey);
+        const UserId = decodedToken.UserId;
+        // const ParoquiaMaisFrequentada = 'Paróquia Teste'
+        const ParoquiaMaisFrequentada = decodedToken.ParoquiaMaisFrequentada;
+        const user = yield usuarioRepository.getUserById(UserId);
+        if (!user) {
+            return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
+        }
+        const users = yield usuarioRepository.getUsersByParoquia(ParoquiaMaisFrequentada);
+        console.log("usuarios", users);
+        res.json(users);
+    }
+    catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+exports.getUsers = getUsers;

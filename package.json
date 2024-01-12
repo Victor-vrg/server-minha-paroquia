@@ -6,7 +6,7 @@
   "scripts": {
     "watch": "npx tsc --watch",
     "start": "node js/app.js",
-    "build": "npx tsc --watch"
+    "build": "npx tsc "
   },
   "keywords": [],
   "author": "Victor",

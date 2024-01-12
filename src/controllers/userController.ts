@@ -9,29 +9,57 @@ import { ObjectId } from 'mongodb';
 const usuarioRepository = new UsuarioRepository();
 const servicoComunitarioRepository = new ServicoComunitarioRepository();
 
-export const getUsers = async (req: Request, res: Response) => {
-  const token = req.header('Authorization');
+export const cadastrarUsuario = async (req: Request, res: Response) => {
+  const {
+    NomeCompleto,
+    Email,
+    Telefone,
+    Bairro,
+    ParoquiaMaisFrequentada,
+    DataNascimento,
+    IDServicoComunitario,
+  } = req.body;
 
-  if (!token) {
-    return res.status(401).json({ error: 'Token não fornecido' });
-  } try {
+  try {
+    const SenhaHash = await bcrypt.hash(req.body.senha, 10);
+    
+    const novoUsuario = ({
+      
+      NomeCompleto,
+      Email,
+      SenhaHash: SenhaHash,
+      Telefone,
+      Bairro,
+      ParoquiaMaisFrequentada,
+      DataNascimento,
+      IDServicoComunitario,
+    });
+   
+    // Insere o novo usuário e obtém o _id retornado
+    const idNovoUsuario = await usuarioRepository.createUser(novoUsuario);
 
-    const secretKey = process.env.secretKey as Secret;
-    const decodedToken = jwt.verify(token, secretKey) as JwtPayload;
-    const UserId: ObjectId = decodedToken.UserId;
-    // const ParoquiaMaisFrequentada = 'Paróquia Teste'
-    const ParoquiaMaisFrequentada = decodedToken.ParoquiaMaisFrequentada
-    const user = await usuarioRepository.getUserById(UserId);
-
-    if (!user) {
-      return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
+    if (!idNovoUsuario) {
+      return res.status(500).json({ error: 'Erro interno do servidor ao cadastrar usuário.' });
+    }
+  
+    if (IDServicoComunitario && IDServicoComunitario.length > 0) {
+      for (const ServicoComunitarioID of IDServicoComunitario) {
+        const servicoComunitario = await usuarioRepository.getServicoComunitarioById(ServicoComunitarioID);
+        if (servicoComunitario) {
+          const novaRelacao = {
+            UsuarioID: idNovoUsuario.toString(),
+            nomeServicoComunitario: servicoComunitario.nomeServicoComunitario,
+            ServicoComunitarioID: ServicoComunitarioID,
+            NivelAcessoNoServico: 5,
+          };
+          await usuarioRepository.RelacaoUsuarioServicosComunitarios(novaRelacao);
+        }
+      }
     }
 
-    const users = await usuarioRepository.getUsersByParoquia(ParoquiaMaisFrequentada);
-    console.log ("usuarios", users)
-    res.json(users);
+    res.json({ message: 'Usuário cadastrado com sucesso.', userId: novoUsuario });
   } catch (error) {
-    console.error('Erro ao buscar usuários:', error);
+    console.error('Erro ao cadastrar usuário:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
@@ -81,52 +109,6 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const cadastrarUsuario = async (req: Request, res: Response) => {
-  const {
-    NomeCompleto,
-    Email,
-    Telefone,
-    Bairro,
-    ParoquiaMaisFrequentada,
-    DataNascimento,
-    IDServicoComunitario,
-  } = req.body;
-
-  try {
-    const SenhaHash = await bcrypt.hash(req.body.senha, 10);
-    console.log( "dados obrigatorios", NomeCompleto,Email,SenhaHash, IDServicoComunitario)
-    const novoUsuario = await usuarioRepository.insertnewUser({
-      NomeCompleto,
-      Email,
-      SenhaHash: SenhaHash,
-      Telefone,
-      Bairro,
-      ParoquiaMaisFrequentada,
-      DataNascimento,
-      IDServicoComunitario,
-    });
-
-    if (novoUsuario) {
-      res.json({ message: 'Usuário cadastrado com sucesso.', userId: novoUsuario });
-    } else {
-      res.status(500).json({ error: 'Erro interno do servidor ao cadastrar usuário.' });
-    }
-  } catch (error) {
-    console.error('Erro ao cadastrar usuário:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-};
-
-export const getServicosComunitarios = async (req: Request, res: Response) => {
-  try {
-    const servicosComunitarios = await servicoComunitarioRepository.getServicosComunitarios();
-    res.json(servicosComunitarios);
-  } catch (error) {
-    console.error('Erro ao buscar serviços comunitários:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-};
-
 export const editarPerfil = async (req: Request, res: Response) => {
   const token = req.header('Authorization');
 
@@ -164,21 +146,39 @@ export const editarPerfil = async (req: Request, res: Response) => {
     if (DataNascimento) {
       user.DataNascimento = DataNascimento;
     }
-    if (IDServicoComunitario) {
-      user.IDServicoComunitario = IDServicoComunitario;
-    }
+    
     if (NovaSenha) {
       const senhaHash = await bcrypt.hash(NovaSenha, 10);
       user.SenhaHash = senhaHash;
     }
+    if (IDServicoComunitario) {
+      user.IDServicoComunitario = IDServicoComunitario;
+    }
 
     await usuarioRepository.updateProfile(decodedToken.UserId, user);
 
+    // Para cada IDServicoComunitario no array, criar uma nova relação
+    if (user.IDServicoComunitario && user.IDServicoComunitario.length > 0) {
+      for (const ServicoComunitarioID of user.IDServicoComunitario) {
+        const servicoComunitario = await usuarioRepository.getServicoComunitarioById(ServicoComunitarioID);
+      
+        if (servicoComunitario) {
+          const novaRelacao = {
+            UsuarioID: decodedToken.UserId,
+            nomeServicoComunitario: servicoComunitario.nomeServicoComunitario,
+            ServicoComunitarioID: ServicoComunitarioID,
+            NivelAcessoNoServico: 5,
+          };
+          await usuarioRepository.RelacaoUsuarioServicosComunitarios(novaRelacao);
+        }
+      }
+    }
     res.json({ message: 'Perfil atualizado com sucesso' });
   } catch (error) {
     res.status(401).json({ error: 'Token inválido ou expirado' });
   }
 };
+
 
 export const getUsuarioLogado = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.header('Authorization');
@@ -213,5 +213,42 @@ export const getUsuarioLogado = async (req: Request, res: Response, next: NextFu
     console.log("seu userdata:",userData);
   } catch (error) {
     res.status(401).json({ error: 'Token inválido ou expirado' });
+  }
+};
+
+export const getServicosComunitarios = async (req: Request, res: Response) => {
+  try {
+    const servicosComunitarios = await servicoComunitarioRepository.getServicosComunitarios();
+    res.json(servicosComunitarios);
+  } catch (error) {
+    console.error('Erro ao buscar serviços comunitários:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
+export const getUsers = async (req: Request, res: Response) => {
+  const token = req.header('Authorization');
+
+  if (!token) {
+    return res.status(401).json({ error: 'Token não fornecido' });
+  } try {
+
+    const secretKey = process.env.secretKey as Secret;
+    const decodedToken = jwt.verify(token, secretKey) as JwtPayload;
+    const UserId: ObjectId = decodedToken.UserId;
+    // const ParoquiaMaisFrequentada = 'Paróquia Teste'
+    const ParoquiaMaisFrequentada = decodedToken.ParoquiaMaisFrequentada
+    const user = await usuarioRepository.getUserById(UserId);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
+    }
+
+    const users = await usuarioRepository.getUsersByParoquia(ParoquiaMaisFrequentada);
+    console.log ("usuarios", users)
+    res.json(users);
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };

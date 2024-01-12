@@ -44,13 +44,44 @@ class UsuarioRepository {
     createUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
             const dbInstance = (0, mongo_1.getDatabaseInstance)();
-            yield dbInstance.collection(this.collectionName).insertOne(user);
+            const result = yield dbInstance.collection(this.collectionName).insertOne(user);
+            return result.insertedId;
         });
     }
     updateProfile(UserId, updatedUser) {
         return __awaiter(this, void 0, void 0, function* () {
             const dbInstance = (0, mongo_1.getDatabaseInstance)();
             yield dbInstance.collection(this.collectionName).updateOne({ _id: UserId }, { $set: updatedUser });
+        });
+    }
+    getServicoComunitarioById(ServicoComunitarioID) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dbInstance = (0, mongo_1.getDatabaseInstance)();
+            const servicosComunitariosCollection = dbInstance.collection('ServicosComunitarios');
+            try {
+                const servicoComunitario = yield servicosComunitariosCollection.findOne({
+                    _id: new mongodb_1.ObjectId(ServicoComunitarioID),
+                });
+                return servicoComunitario;
+            }
+            catch (error) {
+                console.error('Erro ao buscar serviço comunitário por ID:', error);
+                throw error;
+            }
+        });
+    }
+    RelacaoUsuarioServicosComunitarios(novaRelacao) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dbInstance = (0, mongo_1.getDatabaseInstance)();
+            const colecao = dbInstance.collection('UsuariosServicosComunitarios');
+            console.log(novaRelacao);
+            try {
+                yield colecao.insertOne(novaRelacao);
+            }
+            catch (error) {
+                console.error('Erro ao salvar relação na coleção "usuarioservicoscomunitarios":', error);
+                throw error;
+            }
         });
     }
     insertOrUpdateToken(UserId, token, expiration) {
