@@ -68,8 +68,46 @@ class ServicoComunitarioRepository {
     }
   }
 
-
+  public async updateNivelAcessoServicoComunitario(UsuarioID: string, ServicoComunitarioID: string, NivelAcessoNoServico: number): Promise<void> {
+    const dbInstance: Db = getDatabaseInstance();
+    const colecao = dbInstance.collection('UsuariosServicosComunitarios');
+  
+    try {
+      await colecao.updateOne(
+        {
+          UsuarioID,
+          ServicoComunitarioID,
+        },
+        {
+          $set: {
+            NivelAcessoNoServico,
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar nível de acesso do serviço comunitário:', error);
+      throw error;
+    }
+  }
+  public async getUserById(UsuarioID: ObjectId): Promise<UsuarioModel | null> {
+    try {
+      const dbInstance: Db = getDatabaseInstance();
+      const isValidObjectId = ObjectId.isValid(UsuarioID);
+      const user = await dbInstance.collection<UsuarioModel>(this.collectionName).findOne({
+        _id: isValidObjectId ? new ObjectId(UsuarioID) : UsuarioID
+      });
+      if (user) {
+        return user;
+        
+      } else {
+        console.log(`Usuário com ID ${UsuarioID} não encontrado.`);
+        return null;
+      }
+    } catch (error) {
+      console.error('Erro ao buscar usuário por ID:', error);
+      return null;
+    }
+  }
 }
-
 
 export default ServicoComunitarioRepository;

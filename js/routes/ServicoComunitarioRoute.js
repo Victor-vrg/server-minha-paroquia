@@ -10,4 +10,5 @@ const router = express_1.default.Router();
 router.get('/niveis-de-acesso', middleware_1.verifyToken, ServicoComunitarioController_1.getAllNivelAcessoUsuario); // pega todos niveis de acesso
 router.get('/niveis-abaixode5', middleware_1.verifyToken, ServicoComunitarioController_1.getNivelAcessoUsuarioAbaixoDe5); //abaixo de nivel 5 pode criar algo em algum serviço-comunitario
 router.get('/getServicosComunitarios/:usuarioId', ServicoComunitarioController_1.getServicosComunitariosDoUsuario);
+router.put('/editarNivelAcesso', middleware_1.verifyToken, ServicoComunitarioController_1.editarNivelAcesso);
 exports.default = router;

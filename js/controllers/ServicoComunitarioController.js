@@ -12,11 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getServicosComunitariosDoUsuario = exports.getAllNivelAcessoUsuario = exports.getNivelAcessoUsuarioAbaixoDe5 = void 0;
+exports.editarNivelAcesso = exports.getServicosComunitariosDoUsuario = exports.getAllNivelAcessoUsuario = exports.getNivelAcessoUsuarioAbaixoDe5 = void 0;
 const servicoComunitarioRepository_1 = __importDefault(require("../Repository/servicoComunitarioRepository"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = require("dotenv");
+const mongodb_1 = require("mongodb");
+const UsuarioRepository_1 = __importDefault(require("../Repository/UsuarioRepository"));
 (0, dotenv_1.config)();
+const usuarioRepository = new UsuarioRepository_1.default();
 const servicoComunitarioRepository = new servicoComunitarioRepository_1.default();
 const getNivelAcessoUsuarioAbaixoDe5 = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.header('Authorization');
@@ -71,3 +74,41 @@ const getServicosComunitariosDoUsuario = (req, res) => __awaiter(void 0, void 0,
     }
 });
 exports.getServicosComunitariosDoUsuario = getServicosComunitariosDoUsuario;
+const editarNivelAcesso = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.header('Authorization');
+    if (!token) {
+        return res.status(401).json({ error: 'Token não fornecido' });
+    }
+    try {
+        const { UsuarioID, ServicoComunitarioID, NivelAcessoNoServico } = req.body;
+        // Verifica se todos os parâmetros necessários estão presentes
+        if (!UsuarioID || !ServicoComunitarioID || !NivelAcessoNoServico) {
+            return res.status(400).json({ error: 'Parâmetros incompletos' });
+        }
+        console.log('Iniciando edição de nível de acesso...');
+        console.log('UsuarioID:', UsuarioID);
+        console.log('ServicoComunitarioID:', ServicoComunitarioID);
+        console.log('NivelAcessoNoServico:', NivelAcessoNoServico);
+        const usuario = yield servicoComunitarioRepository.getUserById(UsuarioID);
+        console.log('Usuário encontrado:', usuario);
+        if (!usuario) {
+            console.log('Usuário não encontrado');
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+        const servicoComunitario = yield usuarioRepository.getServicoComunitarioById(new mongodb_1.ObjectId(ServicoComunitarioID));
+        console.log('Serviço comunitário encontrado:', servicoComunitario);
+        if (!servicoComunitario) {
+            console.log('Serviço comunitário não encontrado');
+            return res.status(404).json({ error: 'Serviço comunitário não encontrado' });
+        }
+        // Atualiza o nível de acesso no serviço comunitário para o usuário
+        yield servicoComunitarioRepository.updateNivelAcessoServicoComunitario(UsuarioID, ServicoComunitarioID, NivelAcessoNoServico);
+        console.log('Nível de acesso atualizado com sucesso');
+        res.json({ message: 'Nível de acesso atualizado com sucesso' });
+    }
+    catch (error) {
+        console.error('Erro ao editar nível de acesso:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+exports.editarNivelAcesso = editarNivelAcesso;
