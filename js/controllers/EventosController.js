@@ -67,11 +67,14 @@ const createEvento = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         const { NomeEvento, DataInicio, DataFim, HoraInicio, HoraFim, LocalizacaoEvento, DescricaoEvento, CaminhoImagem, TipoEvento, Destaque, Ocultar, IDServicoComunitario, } = req.body;
         console.log("servicosComunitarios", IDServicoComunitario);
-        // Espera a conclusão da função checkUserAccess antes de prosseguir
-        const accessResult = yield (0, middleware_1.checkUserAccess)(IDServicoComunitario, req, res);
-        // Verifica se o acesso foi concedido antes de continuar
-        if (!accessResult) {
-            return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+        // Verifica se IDServicoComunitario está presente antes de verificar o acesso
+        if (IDServicoComunitario !== undefined && IDServicoComunitario !== null) {
+            // Espera a conclusão da função checkUserAccess antes de prosseguir
+            const accessResult = yield (0, middleware_1.checkUserAccess)(IDServicoComunitario, req, res);
+            // Verifica se o acesso foi concedido antes de continuar
+            if (!accessResult) {
+                return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+            }
         }
         const newEvento = {
             _id: new mongodb_1.ObjectId(),

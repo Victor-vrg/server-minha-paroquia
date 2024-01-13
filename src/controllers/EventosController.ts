@@ -75,13 +75,15 @@ export const createEvento = async (req: Request, res: Response, next: NextFuncti
 
     
     console.log("servicosComunitarios", IDServicoComunitario);
+// Verifica se IDServicoComunitario está presente antes de verificar o acesso
+if (IDServicoComunitario !== undefined && IDServicoComunitario !== null) {
+  // Espera a conclusão da função checkUserAccess antes de prosseguir
+  const accessResult = await checkUserAccess(IDServicoComunitario, req, res);
 
-    // Espera a conclusão da função checkUserAccess antes de prosseguir
-const accessResult = await checkUserAccess(IDServicoComunitario, req, res);
-
-// Verifica se o acesso foi concedido antes de continuar
-if (!accessResult) {
-  return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+  // Verifica se o acesso foi concedido antes de continuar
+  if (!accessResult) {
+    return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+  }
 }
     const newEvento: EventosModel = {
       _id: new ObjectId(),
