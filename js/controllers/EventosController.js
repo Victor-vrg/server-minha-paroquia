@@ -160,6 +160,7 @@ const editarEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             Ocultar: false,
             ParoquiaID: (_b = user.ParoquiaMaisFrequentada) !== null && _b !== void 0 ? _b : null,
             IDServicoComunitario,
+            _id: new mongodb_1.ObjectId(eventId),
         };
         yield eventoRepository.updateEvento(eventId, updatedEvento);
         res.json({ message: "Evento atualizado com sucesso" });

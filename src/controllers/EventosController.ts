@@ -196,6 +196,7 @@ export const editarEventos = async (req: Request, res: Response) => {
       Ocultar: false,
       ParoquiaID: user.ParoquiaMaisFrequentada ?? null,
       IDServicoComunitario,
+      _id: new ObjectId(eventId),
     };
 
     await eventoRepository.updateEvento(eventId, updatedEvento);
