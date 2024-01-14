@@ -155,7 +155,11 @@ export const editarEventos = async (req: Request, res: Response) => {
     }
 
     const eventId = req.params.id;
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(eventId);
 
+    if (!isValidObjectId) {
+      return res.status(400).json({ error: 'ID do evento inválido' });
+    }
     const {
       NomeEvento,
       DataInicio,

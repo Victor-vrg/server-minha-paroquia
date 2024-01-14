@@ -135,6 +135,10 @@ const editarEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
         }
         const eventId = req.params.id;
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(eventId);
+        if (!isValidObjectId) {
+            return res.status(400).json({ error: 'ID do evento inválido' });
+        }
         const { NomeEvento, DataInicio, DataFim, HoraInicio, HoraFim, LocalizacaoEvento, DescricaoEvento, CaminhoImagem, TipoEvento, Destaque, IDServicoComunitario, } = req.body;
         console.log("servicosComunitarios", IDServicoComunitario);
         // Verifica se IDServicoComunitario está presente antes de verificar o acesso
