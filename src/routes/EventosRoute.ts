@@ -9,7 +9,7 @@ router.get('/destaque', getEventosDestacados);
 router.get('/eventos', getEventos);
 router.put('/editar-evento', verifyToken, editarEventos);
 router.post('/criar', verifyToken,  createEvento)
-router.delete('/eventos/deletar-evento', verifyToken, deletarEvento);
+router.delete('deletar-evento', verifyToken, deletarEvento);
 
 
 

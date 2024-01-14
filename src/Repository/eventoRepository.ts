@@ -31,7 +31,7 @@ class EventoRepository {
     await dbInstance.collection(this.collectionName).updateOne({ _id: new ObjectId(eventId) }, { $set: updatedEvento });
   }
 
-  public async deleteEvento(eventId: string): Promise<void> {
+  public async deleteEvento(eventId: ObjectId): Promise<void> {
     const dbInstance: Db = getDatabaseInstance();
     await dbInstance.collection(this.collectionName).deleteOne({ _id: new ObjectId(eventId) });
   }
