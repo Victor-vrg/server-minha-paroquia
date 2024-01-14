@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editarEventos = exports.createEvento = exports.getEventos = exports.getEventosDestacados = void 0;
+exports.deletarEvento = exports.editarEventos = exports.createEvento = exports.getEventos = exports.getEventosDestacados = void 0;
 const eventoRepository_1 = __importDefault(require("../Repository/eventoRepository"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const mongodb_1 = require("mongodb");
@@ -176,3 +176,47 @@ const editarEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.editarEventos = editarEventos;
+const deletarEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('Entrou na função deletarEvento');
+    // Obtenha o token do cabeçalho da requisição
+    const token = req.header('Authorization');
+    console.log('Token:', token);
+    // Verifique se o token foi fornecido
+    if (!token) {
+        console.log('Token não fornecido');
+        return res.status(401).json({ error: 'Token não fornecido' });
+    }
+    try {
+        const secretKey = process.env.secretKey;
+        const decodedToken = jsonwebtoken_1.default.verify(token, secretKey);
+        console.log('Token decodificado:', decodedToken);
+        const userId = decodedToken.UserId;
+        // Obtenha o usuário associado ao token
+        const user = yield usuarioRepository.getUserById(userId);
+        // Verifique se o usuário foi encontrado
+        if (!user) {
+            console.log('Usuário associado ao token não encontrado');
+            return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
+        }
+        const { IDServicoComunitario, eventId } = req.body;
+        // Verifique o acesso antes de deletar o evento
+        if (IDServicoComunitario !== undefined && IDServicoComunitario !== null) {
+            // Espera a conclusão da função checkUserAccess antes de prosseguir
+            const accessResult = yield (0, middleware_1.checkUserAccess)(IDServicoComunitario, req, res);
+            // Verifica se o acesso foi concedido antes de continuar
+            if (!accessResult) {
+                return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+            }
+        }
+        // Deleta o evento
+        yield eventoRepository.deleteEvento(eventId);
+        // Envie uma resposta de sucesso
+        res.json({ message: 'Evento deletado com sucesso' });
+        console.log('Evento deletado com sucesso:', eventId);
+    }
+    catch (error) {
+        console.error('Erro ao deletar evento:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+exports.deletarEvento = deletarEvento;

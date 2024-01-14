@@ -40,6 +40,12 @@ class EventoRepository {
             yield dbInstance.collection(this.collectionName).updateOne({ _id: new mongodb_1.ObjectId(eventId) }, { $set: updatedEvento });
         });
     }
+    deleteEvento(eventId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dbInstance = (0, mongo_1.getDatabaseInstance)();
+            yield dbInstance.collection(this.collectionName).deleteOne({ _id: new mongodb_1.ObjectId(eventId) });
+        });
+    }
     getUsuario(UserId) {
         return __awaiter(this, void 0, void 0, function* () {
             const dbInstance = (0, mongo_1.getDatabaseInstance)();

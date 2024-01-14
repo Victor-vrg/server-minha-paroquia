@@ -211,3 +211,60 @@ export const editarEventos = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
+
+export const deletarEvento = async (req: Request, res: Response) => {
+  console.log('Entrou na função deletarEvento');
+
+  // Obtenha o token do cabeçalho da requisição
+  const token = req.header('Authorization');
+  console.log('Token:', token);
+
+  // Verifique se o token foi fornecido
+  if (!token) {
+    console.log('Token não fornecido');
+    return res.status(401).json({ error: 'Token não fornecido' });
+  }
+
+  try {
+    
+    const secretKey = process.env.secretKey as Secret;
+    const decodedToken = jwt.verify(token, secretKey) as JwtPayload;
+    console.log('Token decodificado:', decodedToken);
+    const userId: ObjectId = decodedToken.UserId;
+
+    // Obtenha o usuário associado ao token
+    const user = await usuarioRepository.getUserById(userId);
+
+    // Verifique se o usuário foi encontrado
+    if (!user) {
+      console.log('Usuário associado ao token não encontrado');
+      return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
+    }
+    const {
+      IDServicoComunitario,
+      eventId
+    } = req.body;
+    
+
+    // Verifique o acesso antes de deletar o evento
+    if (IDServicoComunitario !== undefined && IDServicoComunitario !== null) {
+      // Espera a conclusão da função checkUserAccess antes de prosseguir
+      const accessResult = await checkUserAccess(IDServicoComunitario, req, res);
+  
+      // Verifica se o acesso foi concedido antes de continuar
+      if (!accessResult) {
+        return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+      }
+    }
+
+    // Deleta o evento
+    await eventoRepository.deleteEvento(eventId);
+    
+    // Envie uma resposta de sucesso
+    res.json({ message: 'Evento deletado com sucesso' });
+    console.log('Evento deletado com sucesso:', eventId);
+  } catch (error) {
+    console.error('Erro ao deletar evento:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
