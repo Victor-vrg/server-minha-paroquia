@@ -12,4 +12,5 @@ router.get('/eventos', EventosController_1.getEventos);
 router.put('/editar-evento', middleware_1.verifyToken, EventosController_1.editarEventos);
 router.post('/criar', middleware_1.verifyToken, EventosController_1.createEvento);
 router.delete('/deletar-evento', middleware_1.verifyToken, EventosController_1.deletarEvento);
+router.post('/evento', EventosController_1.getEventoById);
 exports.default = router;

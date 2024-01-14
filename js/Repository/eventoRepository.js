@@ -52,5 +52,11 @@ class EventoRepository {
             return yield dbInstance.collection('Usuarios').findOne({ _id: UserId });
         });
     }
+    getEventoById(eventId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dbInstance = (0, mongo_1.getDatabaseInstance)();
+            return yield dbInstance.collection(this.collectionName).findOne({ _id: eventId });
+        });
+    }
 }
 exports.default = EventoRepository;

@@ -40,6 +40,12 @@ class EventoRepository {
     const dbInstance: Db = getDatabaseInstance();
     return await dbInstance.collection<UsuarioModel>('Usuarios').findOne({_id: UserId });
   }
+
+
+public async getEventoById(eventId: ObjectId): Promise<EventosModel | null> {
+  const dbInstance: Db = getDatabaseInstance();
+  return await dbInstance.collection<EventosModel>(this.collectionName).findOne({ _id: eventId });
+}
 }
 
 export default EventoRepository;

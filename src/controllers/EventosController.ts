@@ -268,3 +268,25 @@ export const deletarEvento = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
+
+export const getEventoById = async (req: Request, res: Response) => {
+  try {
+    const eventId = req.body._id;
+
+    // Verifique se o ID fornecido é um ObjectId válido
+    if (!ObjectId.isValid(eventId)) {
+      return res.status(400).json({ error: 'ID do evento inválido' });
+    }
+
+    const evento = await eventoRepository.getEventoById(new ObjectId(eventId));
+
+    if (!evento) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+
+    res.json(evento);
+  } catch (error) {
+    console.error('Erro ao buscar evento por ID:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};

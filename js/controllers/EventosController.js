@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletarEvento = exports.editarEventos = exports.createEvento = exports.getEventos = exports.getEventosDestacados = void 0;
+exports.getEventoById = exports.deletarEvento = exports.editarEventos = exports.createEvento = exports.getEventos = exports.getEventosDestacados = void 0;
 const eventoRepository_1 = __importDefault(require("../Repository/eventoRepository"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const mongodb_1 = require("mongodb");
@@ -220,3 +220,22 @@ const deletarEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.deletarEvento = deletarEvento;
+const getEventoById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const eventId = req.body._id;
+        // Verifique se o ID fornecido é um ObjectId válido
+        if (!mongodb_1.ObjectId.isValid(eventId)) {
+            return res.status(400).json({ error: 'ID do evento inválido' });
+        }
+        const evento = yield eventoRepository.getEventoById(new mongodb_1.ObjectId(eventId));
+        if (!evento) {
+            return res.status(404).json({ error: 'Evento não encontrado' });
+        }
+        res.json(evento);
+    }
+    catch (error) {
+        console.error('Erro ao buscar evento por ID:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+exports.getEventoById = getEventoById;
