@@ -117,21 +117,35 @@ const createEvento = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.createEvento = createEvento;
 const editarEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b;
-    const token = req.header("Authorization");
+    console.log("Entrou na função editarEventos");
+    const token = req.header('Authorization');
+    console.log('Token:', token);
     if (!token) {
-        return res.status(401).json({ error: "Token não fornecido" });
+        console.log("Token não fornecido");
+        return res.status(401).json({ error: 'Token não fornecido' });
     }
     try {
         const secretKey = process.env.secretKey;
         const decodedToken = jsonwebtoken_1.default.verify(token, secretKey);
-        const user = yield eventoRepository.getUsuario(decodedToken.UserId);
+        console.log('Token decodificado:', decodedToken);
+        const UserId = decodedToken.UserId;
+        const user = yield usuarioRepository.getUserById(UserId);
         if (!user) {
-            return res
-                .status(401)
-                .json({ error: "Usuário associado ao token não encontrado" });
+            console.log("Usuário associado ao token não encontrado");
+            return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
         }
         const eventId = req.params.id;
         const { NomeEvento, DataInicio, DataFim, HoraInicio, HoraFim, LocalizacaoEvento, DescricaoEvento, CaminhoImagem, TipoEvento, Destaque, IDServicoComunitario, } = req.body;
+        console.log("servicosComunitarios", IDServicoComunitario);
+        // Verifica se IDServicoComunitario está presente antes de verificar o acesso
+        if (IDServicoComunitario !== undefined && IDServicoComunitario !== null) {
+            // Espera a conclusão da função checkUserAccess antes de prosseguir
+            const accessResult = yield (0, middleware_1.checkUserAccess)(IDServicoComunitario, req, res);
+            // Verifica se o acesso foi concedido antes de continuar
+            if (!accessResult) {
+                return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+            }
+        }
         const updatedEvento = {
             NomeEvento,
             DataInicio,
@@ -146,7 +160,6 @@ const editarEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             Ocultar: false,
             ParoquiaID: (_b = user.ParoquiaMaisFrequentada) !== null && _b !== void 0 ? _b : null,
             IDServicoComunitario,
-            _id: new mongodb_1.ObjectId(),
         };
         yield eventoRepository.updateEvento(eventId, updatedEvento);
         res.json({ message: "Evento atualizado com sucesso" });

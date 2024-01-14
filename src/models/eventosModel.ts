@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 interface EventosModel {
-  _id: ObjectId | any ; 
+  _id?: ObjectId | any ; 
   NomeEvento: string;
   DataInicio: Date | string;
   DataFim: Date | string;

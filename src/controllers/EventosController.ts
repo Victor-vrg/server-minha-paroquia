@@ -130,20 +130,28 @@ if (IDServicoComunitario !== undefined && IDServicoComunitario !== null) {
 };
 
 export const editarEventos = async (req: Request, res: Response) => {
-  const token = req.header("Authorization");
+  console.log("Entrou na função editarEventos");
+
+  const token = req.header('Authorization');
+  console.log('Token:', token);
+
   if (!token) {
-    return res.status(401).json({ error: "Token não fornecido" });
+    console.log("Token não fornecido");
+    return res.status(401).json({ error: 'Token não fornecido' });
+    
   }
 
   try {
     const secretKey = process.env.secretKey as Secret;
     const decodedToken = jwt.verify(token, secretKey) as JwtPayload;
-    const user = await eventoRepository.getUsuario(decodedToken.UserId);
+    console.log('Token decodificado:', decodedToken);
+    const UserId: ObjectId = decodedToken.UserId;
+    const user = await usuarioRepository.getUserById(UserId);
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ error: "Usuário associado ao token não encontrado" });
+      console.log("Usuário associado ao token não encontrado");
+      return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
+    
     }
 
     const eventId = req.params.id;
@@ -161,7 +169,19 @@ export const editarEventos = async (req: Request, res: Response) => {
       Destaque,
       IDServicoComunitario,
     } = req.body;
+    console.log("servicosComunitarios", IDServicoComunitario);
 
+    // Verifica se IDServicoComunitario está presente antes de verificar o acesso
+    if (IDServicoComunitario !== undefined && IDServicoComunitario !== null) {
+      // Espera a conclusão da função checkUserAccess antes de prosseguir
+      const accessResult = await checkUserAccess(IDServicoComunitario, req, res);
+  
+      // Verifica se o acesso foi concedido antes de continuar
+      if (!accessResult) {
+        return res.status(403).json({ error: 'Acesso não autorizado para este serviço comunitário' });
+      }
+    }
+  
     const updatedEvento: EventosModel = {
       NomeEvento,
       DataInicio,
@@ -175,8 +195,7 @@ export const editarEventos = async (req: Request, res: Response) => {
       Destaque,
       Ocultar: false,
       ParoquiaID: user.ParoquiaMaisFrequentada ?? null,
-     IDServicoComunitario,
-      _id: new ObjectId(),
+      IDServicoComunitario,
     };
 
     await eventoRepository.updateEvento(eventId, updatedEvento);
