@@ -205,7 +205,7 @@ export const editarEventos = async (req: Request, res: Response) => {
 
     await eventoRepository.updateEvento(eventId, updatedEvento);
     res.json({ message: "Evento atualizado com sucesso" });
-    console.log("Evento atualizado com sucesso:", eventId);
+    console.log("Evento atualizado com sucesso:", eventId, NomeEvento);
   } catch (error) {
     console.error("Erro ao atualizar evento:", error);
     res.status(500).json({ error: "Erro interno do servidor" });

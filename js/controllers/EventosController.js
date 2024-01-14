@@ -168,7 +168,7 @@ const editarEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         };
         yield eventoRepository.updateEvento(eventId, updatedEvento);
         res.json({ message: "Evento atualizado com sucesso" });
-        console.log("Evento atualizado com sucesso:", eventId);
+        console.log("Evento atualizado com sucesso:", eventId, NomeEvento);
     }
     catch (error) {
         console.error("Erro ao atualizar evento:", error);
