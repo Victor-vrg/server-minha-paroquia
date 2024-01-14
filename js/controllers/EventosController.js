@@ -134,7 +134,7 @@ const editarEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             console.log("Usuário associado ao token não encontrado");
             return res.status(401).json({ error: 'Usuário associado ao token não encontrado' });
         }
-        const eventId = req.params.id;
+        const eventId = req.body._id;
         const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(eventId);
         if (!isValidObjectId) {
             return res.status(400).json({ error: 'ID do evento inválido' });

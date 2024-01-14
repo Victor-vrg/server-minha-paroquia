@@ -7,7 +7,7 @@ const router: Router = express.Router();
 
 router.get('/destaque', getEventosDestacados);
 router.get('/eventos', getEventos);
-router.put('/editar-evento/:id', verifyToken, editarEventos);
+router.put('/editar-evento', verifyToken, editarEventos);
 router.post('/criar', verifyToken,  createEvento)
 
 

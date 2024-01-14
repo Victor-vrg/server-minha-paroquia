@@ -154,7 +154,7 @@ export const editarEventos = async (req: Request, res: Response) => {
     
     }
 
-    const eventId = req.params.id;
+    const eventId = req.body._id;
     const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(eventId);
 
     if (!isValidObjectId) {
