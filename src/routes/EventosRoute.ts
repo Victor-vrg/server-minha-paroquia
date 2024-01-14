@@ -13,5 +13,4 @@ router.delete('/deletar-evento', verifyToken, deletarEvento);
 router.post('/evento', getEventoById);
 
 
-
 export default router; 
