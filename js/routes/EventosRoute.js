@@ -11,5 +11,5 @@ router.get('/destaque', EventosController_1.getEventosDestacados);
 router.get('/eventos', EventosController_1.getEventos);
 router.put('/editar-evento', middleware_1.verifyToken, EventosController_1.editarEventos);
 router.post('/criar', middleware_1.verifyToken, EventosController_1.createEvento);
-router.delete('/eventos/deletar-evento', EventosController_1.deletarEvento);
+router.delete('/eventos/deletar-evento', middleware_1.verifyToken, EventosController_1.deletarEvento);
 exports.default = router;
