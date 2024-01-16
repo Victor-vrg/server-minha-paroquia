@@ -31,15 +31,7 @@ class UsuarioRepository {
 
   public async getUserByEmailOrName(email: string, nomeCompleto: string): Promise<UsuarioModel | null> {
     const dbInstance: Db = getDatabaseInstance();
-    
-    const query = {
-      $or: [
-        { Email: { $regex: new RegExp(email, 'i') } },
-        { NomeCompleto: { $regex: new RegExp(nomeCompleto, 'i') } }
-      ]
-    };
-  
-    return await dbInstance.collection<UsuarioModel>(this.collectionName).findOne(query);
+    return await dbInstance.collection<UsuarioModel>(this.collectionName).findOne({ $or: [{ Email: email }, { NomeCompleto: nomeCompleto }] });
   }
   
 
